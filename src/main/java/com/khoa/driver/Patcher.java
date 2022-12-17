@@ -9,9 +9,12 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -37,6 +40,11 @@ public class Patcher {
         this.driverZipPath = driverFolder + "/" + String.format(DRIVER_ZIP_PATTERN, this.getRemoteFileName());
     }
 
+    public Patcher() {
+        this(null);
+    }
+
+
     public void setup() {
         this.fetchDriver();
         this.unzip();
@@ -49,27 +57,49 @@ public class Patcher {
     }
 
     private void patchDriver() {
-        StringBuilder inputBuffer = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(this.driverExecutablePath))) {
-            String newCdc = this.generateRandomCdc();
-            String line = reader.readLine();
-            while (line != null) {
-
-                if (line.contains("cdc_")) {
-                    inputBuffer.append(line.replaceAll("cdc_.{22}", newCdc));
-                } else {
-                    inputBuffer.append(line);
-                }
-                line = reader.readLine();
+        File file = new File(this.driverExecutablePath);
+        int length = (int) file.length();
+        byte[] data;
+        try (FileInputStream in = new FileInputStream(file);
+             ByteArrayOutputStream bs = new ByteArrayOutputStream(length)) {
+            byte[] buffer = new byte[128_000];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                bs.write(buffer, 0, len);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Error while patching driver!");
-        }
-
-        try (FileOutputStream fileOut = new FileOutputStream(this.driverExecutablePath)) {
-            fileOut.write(inputBuffer.toString().getBytes());
+            data = bs.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        this.searchAndReplace(data);
+
+        try (FileOutputStream out = new FileOutputStream(file);
+             ByteArrayInputStream bs = new ByteArrayInputStream(data)) {
+            byte[] buffer = new byte[128_000];
+            int len;
+            while ((len = bs.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+            out.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void searchAndReplace(byte[] data) {
+        byte[] newCdc = this.generateRandomCdc().getBytes(StandardCharsets.US_ASCII);
+        byte[] patternCharArray = "cdc_".getBytes(StandardCharsets.US_ASCII);
+        Pattern pattern = Pattern.compile("cdc_.{22}");
+
+        for (int i = 0; i < data.length - newCdc.length; i++) {
+            if (data[i] == patternCharArray[0] && data[i + 1] == patternCharArray[1] && data[i + 2] == patternCharArray[2] && data[i + 3] == patternCharArray[3]) // check for consecutive bytes
+            {
+                String comparingValue = new String(data, i, newCdc.length, StandardCharsets.US_ASCII);
+                if (pattern.matcher(comparingValue).matches()) {
+                    System.arraycopy(newCdc, 0, data, i, newCdc.length);
+                    i += newCdc.length;
+                }
+            }
         }
     }
 
@@ -149,7 +179,8 @@ public class Patcher {
     }
 
     private void fetchDriver() {
-        if ((Path.of(driverExecutablePath).toFile().exists())) {
+        File driverFile = Path.of(driverExecutablePath).toFile();
+        if ((driverFile.exists() && !driverFile.isDirectory() && Files.isRegularFile(driverFile.toPath()))) {
             new File(driverExecutablePath).setExecutable(true);
             LOGGER.info("Driver exist. Made it executable.");
             return;
