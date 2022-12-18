@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'signing'
 }
 
 group 'io.github.tranngockhoa'
@@ -13,6 +14,14 @@ repositories {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
 }
 
 dependencies {
