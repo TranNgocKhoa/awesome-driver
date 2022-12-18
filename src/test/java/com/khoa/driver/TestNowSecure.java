@@ -14,24 +14,29 @@ import java.time.Duration;
 public class TestNowSecure {
     @Test
     void test() {
-        new Patcher().setup();
         AwesomeDriver awesomeDriver = new AwesomeDriver(false);
-        awesomeDriver.get("https://nowsecure.nl");
+        try {
+            awesomeDriver.get("https://nowsecure.nl");
+        } finally {
+            awesomeDriver.quit();
+        }
     }
 
     @Test
     void testHeadless() throws IOException, InterruptedException {
-        new Patcher().setup();
         AwesomeDriver awesomeDriver = new AwesomeDriver(true);
-        awesomeDriver.get("https://nowsecure.nl");
+        try {
+            awesomeDriver.get("https://nowsecure.nl");
 
-        WebDriverWait webDriverWait = new WebDriverWait(awesomeDriver, Duration.ofSeconds(20));
+            WebDriverWait webDriverWait = new WebDriverWait(awesomeDriver, Duration.ofSeconds(20));
 
             webDriverWait.until(ExpectedConditions.invisibilityOfElementWithText(By.tagName("h1"), "OH YEAH, you passed!"));
 
-        File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
-        FileUtils.copyFile(screenshotAs, new File("./out.png"));
-
+            FileUtils.copyFile(screenshotAs, new File("./out.png"));
+        } finally {
+            awesomeDriver.quit();
+        }
     }
 }

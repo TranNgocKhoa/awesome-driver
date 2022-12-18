@@ -36,6 +36,7 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot {
     }
 
     public AwesomeDriver(ChromeOptions chromeOptions, ProxyConfig proxyConfig, boolean isHeadless) {
+        new Patcher().setup();
         this.options = this.patchingOption(chromeOptions);
         this.options.setHeadless(isHeadless);
         if (proxyConfig != null) {
