@@ -16,13 +16,6 @@ java {
     withSourcesJar()
 }
 
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-signing {
-    sign configurations.archives
-}
 
 dependencies {
     implementation 'org.seleniumhq.selenium:selenium-java:4.7.1'
@@ -73,5 +66,15 @@ publishing {
                 }
             }
         }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
