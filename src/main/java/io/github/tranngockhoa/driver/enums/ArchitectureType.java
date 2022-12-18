@@ -6,10 +6,12 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 public enum ArchitectureType {
-    DEFAULT(emptyList()), X32(asList("i686", "x86")), X64(emptyList()),
+    DEFAULT(emptyList()),
+    X32(asList("i686", "x86")),
+    X64(emptyList()),
     ARM64(asList("aarch64", "m1"));
 
-    private List<String> architectureValueList;
+    private final List<String> architectureValueList;
 
     ArchitectureType(List<String> emptyList) {
         this.architectureValueList = emptyList;
