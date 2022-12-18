@@ -1,7 +1,7 @@
-package com.khoa.driver;
+package io.github.tranngockhoa.driver;
 
-import com.khoa.driver.enums.ArchitectureType;
-import com.khoa.driver.enums.PlatformType;
+import io.github.tranngockhoa.driver.enums.ArchitectureType;
+import io.github.tranngockhoa.driver.enums.PlatformType;
 
 public class SystemHelper {
     private static final class InstanceHolder {

@@ -1,4 +1,4 @@
-package com.khoa.driver.proxy;
+package io.github.tranngockhoa.driver.proxy;
 
 public class ProxyConfig {
     private String host;

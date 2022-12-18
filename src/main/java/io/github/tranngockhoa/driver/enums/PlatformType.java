@@ -1,4 +1,4 @@
-package com.khoa.driver.enums;
+package io.github.tranngockhoa.driver.enums;
 
 public enum PlatformType {
     WINDOWS,

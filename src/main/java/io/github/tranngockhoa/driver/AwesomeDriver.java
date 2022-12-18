@@ -1,6 +1,6 @@
-package com.khoa.driver;
+package io.github.tranngockhoa.driver;
 
-import com.khoa.driver.proxy.ProxyConfig;
+import io.github.tranngockhoa.driver.proxy.ProxyConfig;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -12,8 +12,6 @@ import java.util.*;
 public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot {
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
-    private final boolean isHeadless = false;
-
 
     public AwesomeDriver(ChromeOptions chromeOptions) {
         this(chromeOptions, null, false);

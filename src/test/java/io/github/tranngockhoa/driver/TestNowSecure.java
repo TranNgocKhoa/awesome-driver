@@ -1,4 +1,4 @@
-package com.khoa.driver;
+package io.github.tranngockhoa.driver;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;

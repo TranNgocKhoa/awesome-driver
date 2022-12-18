@@ -1,8 +1,6 @@
-package com.khoa.driver;
+package io.github.tranngockhoa.driver;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class PatcherTest {
 
