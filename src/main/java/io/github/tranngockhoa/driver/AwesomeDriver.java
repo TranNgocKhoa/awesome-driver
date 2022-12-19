@@ -9,7 +9,7 @@ import org.openqa.selenium.devtools.HasDevTools;
 
 import java.util.*;
 
-public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot {
+public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor {
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
 
@@ -271,5 +271,15 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot {
     @Override
     public <X> X getScreenshotAs(OutputType<X> target) throws WebDriverException {
         return chromeDriver.getScreenshotAs(target);
+    }
+
+    @Override
+    public Object executeScript(String script, Object... args) {
+        return chromeDriver.executeScript(script, args);
+    }
+
+    @Override
+    public Object executeAsyncScript(String script, Object... args) {
+        return chromeDriver.executeAsyncScript(script, args);
     }
 }

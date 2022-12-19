@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'io.github.tranngockhoa'
-version '0.0.1'
+version '0.0.2'
 
 repositories {
     mavenCentral()
@@ -18,7 +18,7 @@ java {
 
 
 dependencies {
-    implementation 'org.seleniumhq.selenium:selenium-java:4.7.1'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.7.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
     testImplementation 'commons-io:commons-io:2.11.0'
@@ -34,17 +34,15 @@ publishing {
         maven {
             url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username = System.getProperty("osshUsername")
-                password = System.getProperty("osshPassword")
-
+                username = project.property("osshUserName")
+                password = project.property("osshPassword")
             }
         }
     }
     publications {
         mavenJava(MavenPublication) {
-
             groupId = 'io.github.tranngockhoa'
-            version '0.0.1'
+            version '0.0.2'
             artifactId = 'driver'
             from components.java
             versionMapping {
