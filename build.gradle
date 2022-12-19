@@ -30,8 +30,21 @@ test {
 }
 
 publishing {
+    repositories {
+        maven {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = System.getProperty("osshUsername")
+                password = System.getProperty("osshPassword")
+
+            }
+        }
+    }
     publications {
         mavenJava(MavenPublication) {
+
+            groupId = 'io.github.tranngockhoa'
+            version '0.0.1'
             artifactId = 'driver'
             from components.java
             versionMapping {
@@ -70,7 +83,7 @@ publishing {
 }
 
 signing {
-    sign publishing.publications.mavenJava
+    sign publishing.publications
 }
 
 javadoc {
