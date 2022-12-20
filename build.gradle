@@ -67,7 +67,7 @@ publishing {
                     developer {
                         id = 'tranngockhoa'
                         name = 'Tran Ngoc Khoa'
-                        email = 'tranngoc.khos.spk@gmail.com'
+                        email = 'tranngoc.khoa.spk@gmail.com'
                     }
                 }
                 scm {
