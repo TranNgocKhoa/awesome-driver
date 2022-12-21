@@ -12,6 +12,9 @@ public class SystemHelper {
         return InstanceHolder.INSTANCE;
     }
 
+    /**
+     * @return Platform Type
+     */
     public PlatformType platform() {
         String osName = System.getProperty("os.name");
 
