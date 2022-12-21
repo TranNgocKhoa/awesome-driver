@@ -1,5 +1,6 @@
 package io.github.tranngockhoa.driver;
 
+import io.github.tranngockhoa.driver.io.ResourceFileReader;
 import io.github.tranngockhoa.driver.proxy.ProxyConfig;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,6 +11,7 @@ import org.openqa.selenium.devtools.HasDevTools;
 import java.util.*;
 
 public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor {
+    private final ResourceFileReader resourceFileReader = new ResourceFileReader();
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
 
@@ -43,123 +45,10 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
         this.chromeDriver = new ChromeDriver(options);
 
         if (isHeadless) {
-            this.patchingCdc();
+            this.evade();
         }
     }
 
-
-    private void patchingCdc() {
-        chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of(
-                "userAgent", chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "")
-        ));
-
-        if (chromeDriver.executeScript("return navigator.webdriver") != null) {
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument",
-                    Map.of("source", "Object.defineProperty(window, 'navigator', {\n" +
-                            "                                value: new Proxy(navigator, {\n" +
-                            "                                        has: (target, key) => (key === 'webdriver' ? false : key in target),\n" +
-                            "                                        get: (target, key) =>\n" +
-                            "                                                key === 'webdriver' ?\n" +
-                            "                                                false :\n" +
-                            "                                                typeof target[key] === 'function' ?\n" +
-                            "                                                target[key].bind(target) :\n" +
-                            "                                                target[key]\n" +
-                            "                                        })\n" +
-                            "                            });")
-            );
-
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument",
-                    Map.of("source", "Object.defineProperty(navigator, 'maxTouchPoints', {get: () => 1});\n" +
-                            "                            Object.defineProperty(navigator.connection, 'rtt', {get: () => 100});\n" +
-                            "                            // https://github.com/microlinkhq/browserless/blob/master/packages/goto/src/evasions/chrome-runtime.js\n" +
-                            "                            window.chrome = {\n" +
-                            "                                app: {\n" +
-                            "                                    isInstalled: false,\n" +
-                            "                                    InstallState: {\n" +
-                            "                                        DISABLED: 'disabled',\n" +
-                            "                                        INSTALLED: 'installed',\n" +
-                            "                                        NOT_INSTALLED: 'not_installed'\n" +
-                            "                                    },\n" +
-                            "                                    RunningState: {\n" +
-                            "                                        CANNOT_RUN: 'cannot_run',\n" +
-                            "                                        READY_TO_RUN: 'ready_to_run',\n" +
-                            "                                        RUNNING: 'running'\n" +
-                            "                                    }\n" +
-                            "                                },\n" +
-                            "                                runtime: {\n" +
-                            "                                    OnInstalledReason: {\n" +
-                            "                                        CHROME_UPDATE: 'chrome_update',\n" +
-                            "                                        INSTALL: 'install',\n" +
-                            "                                        SHARED_MODULE_UPDATE: 'shared_module_update',\n" +
-                            "                                        UPDATE: 'update'\n" +
-                            "                                    },\n" +
-                            "                                    OnRestartRequiredReason: {\n" +
-                            "                                        APP_UPDATE: 'app_update',\n" +
-                            "                                        OS_UPDATE: 'os_update',\n" +
-                            "                                        PERIODIC: 'periodic'\n" +
-                            "                                    },\n" +
-                            "                                    PlatformArch: {\n" +
-                            "                                        ARM: 'arm',\n" +
-                            "                                        ARM64: 'arm64',\n" +
-                            "                                        MIPS: 'mips',\n" +
-                            "                                        MIPS64: 'mips64',\n" +
-                            "                                        X86_32: 'x86-32',\n" +
-                            "                                        X86_64: 'x86-64'\n" +
-                            "                                    },\n" +
-                            "                                    PlatformNaclArch: {\n" +
-                            "                                        ARM: 'arm',\n" +
-                            "                                        MIPS: 'mips',\n" +
-                            "                                        MIPS64: 'mips64',\n" +
-                            "                                        X86_32: 'x86-32',\n" +
-                            "                                        X86_64: 'x86-64'\n" +
-                            "                                    },\n" +
-                            "                                    PlatformOs: {\n" +
-                            "                                        ANDROID: 'android',\n" +
-                            "                                        CROS: 'cros',\n" +
-                            "                                        LINUX: 'linux',\n" +
-                            "                                        MAC: 'mac',\n" +
-                            "                                        OPENBSD: 'openbsd',\n" +
-                            "                                        WIN: 'win'\n" +
-                            "                                    },\n" +
-                            "                                    RequestUpdateCheckStatus: {\n" +
-                            "                                        NO_UPDATE: 'no_update',\n" +
-                            "                                        THROTTLED: 'throttled',\n" +
-                            "                                        UPDATE_AVAILABLE: 'update_available'\n" +
-                            "                                    }\n" +
-                            "                                }\n" +
-                            "                            }\n" +
-                            "                            // https://github.com/microlinkhq/browserless/blob/master/packages/goto/src/evasions/navigator-permissions.js\n" +
-                            "                            if (!window.Notification) {\n" +
-                            "                                window.Notification = {\n" +
-                            "                                    permission: 'denied'\n" +
-                            "                                }\n" +
-                            "                            }\n" +
-                            "                            const originalQuery = window.navigator.permissions.query\n" +
-                            "                            window.navigator.permissions.__proto__.query = parameters =>\n" +
-                            "                                parameters.name === 'notifications'\n" +
-                            "                                    ? Promise.resolve({ state: window.Notification.permission })\n" +
-                            "                                    : originalQuery(parameters)\n" +
-                            "                            const oldCall = Function.prototype.call\n" +
-                            "                            function call() {\n" +
-                            "                                return oldCall.apply(this, arguments)\n" +
-                            "                            }\n" +
-                            "                            Function.prototype.call = call\n" +
-                            "                            const nativeToStringFunctionString = Error.toString().replace(/Error/g, 'toString')\n" +
-                            "                            const oldToString = Function.prototype.toString\n" +
-                            "                            function functionToString() {\n" +
-                            "                                if (this === window.navigator.permissions.query) {\n" +
-                            "                                    return 'function query() { [native code] }'\n" +
-                            "                                }\n" +
-                            "                                if (this === functionToString) {\n" +
-                            "                                    return nativeToStringFunctionString\n" +
-                            "                                }\n" +
-                            "                                return oldCall.call(oldToString, this)\n" +
-                            "                            }\n" +
-                            "                            // eslint-disable-next-line\n" +
-                            "                            Function.prototype.toString = functionToString")
-            );
-        }
-    }
 
     public void setProxy(ProxyConfig proxyConfig) {
         Proxy proxy = new Proxy();
@@ -281,5 +170,21 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
     @Override
     public Object executeAsyncScript(String script, Object... args) {
         return chromeDriver.executeAsyncScript(script, args);
+    }
+
+    private void evade() {
+        String userAgentPatch = chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "");
+        chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of("userAgent", userAgentPatch));
+
+        if (chromeDriver.executeScript("return navigator.webdriver") != null) {
+            String hideWebdriverNavigatorPatch = resourceFileReader.getFileContent("hideNavigatorWebDriver.js");
+            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", hideWebdriverNavigatorPatch));
+
+            String chromeRuntimePatch = resourceFileReader.getFileContent("chromeRuntime.js");
+            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", chromeRuntimePatch));
+
+            String navigatorPermissionPatch = resourceFileReader.getFileContent("navigatorPermission.js");
+            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", navigatorPermissionPatch));
+        }
     }
 }

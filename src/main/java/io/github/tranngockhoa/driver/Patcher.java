@@ -10,7 +10,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -46,8 +45,11 @@ public class Patcher {
 
 
     public void setup() {
-        this.fetchDriver();
-        this.unzip();
+        File driverFile = Path.of(driverExecutablePath).toFile();
+        if (!driverFile.exists()) {
+            this.fetchDriver();
+            this.unzip();
+        }
         this.makeDriverExecutable();
         if (!this.isPatched()) {
             this.patchDriver();
@@ -56,7 +58,8 @@ public class Patcher {
         System.setProperty("webdriver.chrome.driver", this.driverExecutablePath);
     }
 
-    private void patchDriver() {
+    @Deprecated
+    private void patchDriverOld() {
         File file = new File(this.driverExecutablePath);
         int length = (int) file.length();
         byte[] data;
@@ -86,14 +89,46 @@ public class Patcher {
         }
     }
 
+    private void patchDriver() {
+        String randomCdc = this.generateRandomCdc();
+
+        int chunkSize = 1024;
+        byte[] bufferArray = new byte[chunkSize];
+        long currentPosition = 0L;
+        String pattern = "cdc_";
+        try (RandomAccessFile driverFile = new RandomAccessFile(this.driverExecutablePath, "rw")) {
+            while (currentPosition < driverFile.length()) {
+
+                int readingByteCount = driverFile.read(bufferArray);
+                String readingString = new String(bufferArray, 0, readingByteCount);
+                int targetPosition = readingString.indexOf(pattern);
+
+                while (targetPosition != -1) {
+                    driverFile.seek(currentPosition + targetPosition);
+                    driverFile.write(randomCdc.getBytes(StandardCharsets.US_ASCII));
+
+                    currentPosition += targetPosition + randomCdc.length();
+                    driverFile.seek(currentPosition);
+
+                    readingByteCount = driverFile.read(bufferArray);
+                    readingString = new String(bufferArray, 0, readingByteCount);
+                    targetPosition = readingString.indexOf(randomCdc);
+                }
+
+                currentPosition += chunkSize;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error when reading driver file to patch!");
+        }
+    }
+
     private void searchAndReplace(byte[] data) {
         byte[] newCdc = this.generateRandomCdc().getBytes(StandardCharsets.US_ASCII);
         byte[] patternCharArray = "cdc_".getBytes(StandardCharsets.US_ASCII);
         Pattern pattern = Pattern.compile("cdc_.{22}");
 
         for (int i = 0; i < data.length - newCdc.length; i++) {
-            if (data[i] == patternCharArray[0] && data[i + 1] == patternCharArray[1] && data[i + 2] == patternCharArray[2] && data[i + 3] == patternCharArray[3]) // check for consecutive bytes
-            {
+            if (data[i] == patternCharArray[0] && data[i + 1] == patternCharArray[1] && data[i + 2] == patternCharArray[2] && data[i + 3] == patternCharArray[3]) {
                 String comparingValue = new String(data, i, newCdc.length, StandardCharsets.US_ASCII);
                 if (pattern.matcher(comparingValue).matches()) {
                     System.arraycopy(newCdc, 0, data, i, newCdc.length);
@@ -179,15 +214,7 @@ public class Patcher {
     }
 
     private void fetchDriver() {
-        File driverFile = Path.of(driverExecutablePath).toFile();
-        if ((driverFile.exists() && !driverFile.isDirectory() && Files.isRegularFile(driverFile.toPath()))) {
-            new File(driverExecutablePath).setExecutable(true);
-            LOGGER.info("Driver exist. Made it executable.");
-            return;
-        } else {
-            new File(this.driverFolder).mkdirs();
-        }
-
+        new File(this.driverFolder).mkdirs();
         try {
             LOGGER.info(() -> String.format("Downloading driver version %s...", fullVersion));
 
@@ -205,10 +232,6 @@ public class Patcher {
     }
 
     private void unzip() {
-        File dir = new File(this.driverFolder);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
         byte[] buffer = new byte[1024];
         try (FileInputStream fileInputStream = new FileInputStream(this.driverZipPath); ZipInputStream zipInputStream = new ZipInputStream(fileInputStream)) {
             ZipEntry nextEntry = zipInputStream.getNextEntry();
@@ -262,7 +285,13 @@ public class Patcher {
         char[] array = new char[26];
         Random random = new Random();
         for (int i = 0; i < 26; i++) {
-            if (i == 3) {
+            if (i == 0) {
+                char aChar = ALPHABET[random.nextInt(26)];
+                if (aChar == 'c') {
+                    aChar += 1;
+                }
+                array[i] = aChar;
+            } else if (i == 3) {
                 array[i] = '_';
             } else if (i == 20 || i == 21) {
                 array[i] = Character.toUpperCase(ALPHABET[random.nextInt(26)]);

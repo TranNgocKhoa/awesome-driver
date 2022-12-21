@@ -42,3 +42,7 @@ bin/
 .DS_Store
 /out.png
 gradle.properties
+/outHeadless.png
+/outSanny.png
+/outSannyHeadless.png
+/outHeadlessSite.png

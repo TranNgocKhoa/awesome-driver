@@ -2,21 +2,36 @@ package io.github.tranngockhoa.driver;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 
 public class TestNowSecure {
     @Test
-    void test() {
+    void test() throws IOException, InterruptedException {
         AwesomeDriver awesomeDriver = new AwesomeDriver(false);
         try {
             awesomeDriver.get("https://nowsecure.nl");
+
+            Thread.sleep(10000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./out.png"));
+        } finally {
+            awesomeDriver.quit();
+        }
+    }
+
+    @Test
+    void testSanny() throws IOException, InterruptedException {
+        AwesomeDriver awesomeDriver = new AwesomeDriver(false);
+        try {
+            awesomeDriver.get("https://bot.sannysoft.com/");
+            Thread.sleep(10000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./outSanny.png"));
         } finally {
             awesomeDriver.quit();
         }
@@ -27,14 +42,42 @@ public class TestNowSecure {
         AwesomeDriver awesomeDriver = new AwesomeDriver(true);
         try {
             awesomeDriver.get("https://nowsecure.nl");
-
-            WebDriverWait webDriverWait = new WebDriverWait(awesomeDriver, Duration.ofSeconds(20));
-
-            webDriverWait.until(ExpectedConditions.invisibilityOfElementWithText(By.tagName("h1"), "OH YEAH, you passed!"));
-
+            Thread.sleep(30000);
             File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
-            FileUtils.copyFile(screenshotAs, new File("./out.png"));
+            System.out.println(awesomeDriver.getPageSource());
+
+            FileUtils.copyFile(screenshotAs, new File("./outHeadless.png"));
+        } finally {
+            awesomeDriver.quit();
+        }
+    }
+
+    @Test
+    void testHeadlessSanny() throws IOException, InterruptedException {
+        AwesomeDriver awesomeDriver = new AwesomeDriver(true);
+        try {
+            awesomeDriver.get("https://bot.sannysoft.com/");
+
+            Thread.sleep(10000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./outSannyHeadless.png"));
+        } finally {
+            awesomeDriver.quit();
+        }
+    }
+
+    @Test
+    void testHeadlessSite() throws IOException, InterruptedException {
+        AwesomeDriver awesomeDriver = new AwesomeDriver(true);
+        try {
+            awesomeDriver.get("https://arh.antoinevastel.com/bots/areyouheadless");
+
+            Thread.sleep(5000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./outHeadlessSite.png"));
         } finally {
             awesomeDriver.quit();
         }
