@@ -16,7 +16,12 @@
 <dependency>
     <groupId>io.github.tranngockhoa</groupId>
     <artifactId>driver</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
+</dependency>
+<dependency>
+<groupId>org.seleniumhq.selenium</groupId>
+<artifactId>selenium-java</artifactId>
+<version>4.7.1</version>
 </dependency>
 ```
 
@@ -31,7 +36,8 @@ repositories {
 }
 
 ...
-implementation 'io.github.tranngockhoa:driver:0.0.2'
+implementation 'io.github.tranngockhoa:driver:0.0.3'
+implementation 'org.seleniumhq.selenium:selenium-java:4.7.1'
 ```
 
 ### Java code
