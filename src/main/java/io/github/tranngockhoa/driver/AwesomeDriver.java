@@ -4,45 +4,56 @@ import io.github.tranngockhoa.driver.io.ResourceFileReader;
 import io.github.tranngockhoa.driver.proxy.ProxyConfig;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.interactions.Interactive;
+import org.openqa.selenium.interactions.Sequence;
 
 import java.util.*;
 
-public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor {
+public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor, Interactive {
     private final ResourceFileReader resourceFileReader = new ResourceFileReader();
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
 
     public AwesomeDriver(ChromeOptions chromeOptions) {
-        this(chromeOptions, null, false);
+        this(null, chromeOptions, null, false);
+    }
+
+    public AwesomeDriver(ChromeDriverService service, ProxyConfig proxyConfig, boolean isHeadless) {
+        this(service, null, proxyConfig, isHeadless);
     }
 
     public AwesomeDriver(boolean isHeadless) {
-        this(null, null, isHeadless);
+        this(null, null, null, isHeadless);
     }
 
     public AwesomeDriver(ProxyConfig proxyConfig) {
-        this(null, proxyConfig, false);
+        this(null, null, proxyConfig, false);
     }
 
     public AwesomeDriver(ProxyConfig proxyConfig, boolean isHeadless) {
-        this(null, proxyConfig, isHeadless);
+        this(null, null, proxyConfig, isHeadless);
     }
 
     public AwesomeDriver() {
-        this(null, null, false);
+        this(null, null, null, false);
     }
 
-    public AwesomeDriver(ChromeOptions chromeOptions, ProxyConfig proxyConfig, boolean isHeadless) {
+    public AwesomeDriver(ChromeDriverService service, ChromeOptions chromeOptions, ProxyConfig proxyConfig, boolean isHeadless) {
         new Patcher().setup();
         this.options = this.patchingOption(chromeOptions);
         this.options.setHeadless(isHeadless);
         if (proxyConfig != null) {
             this.setProxy(proxyConfig);
         }
-        this.chromeDriver = new ChromeDriver(options);
+        if (service != null) {
+            this.chromeDriver = new ChromeDriver(service, options);
+        } else {
+            this.chromeDriver = new ChromeDriver(options);
+        }
 
         if (isHeadless) {
             this.evade();
@@ -186,5 +197,15 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
             String navigatorPermissionPatch = resourceFileReader.getFileContent("navigatorPermission.js");
             chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", navigatorPermissionPatch));
         }
+    }
+
+    @Override
+    public void perform(Collection<Sequence> actions) {
+        chromeDriver.perform(actions);
+    }
+
+    @Override
+    public void resetInputState() {
+        chromeDriver.resetInputState();
     }
 }
