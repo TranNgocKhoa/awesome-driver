@@ -18,6 +18,7 @@ public class ResourceFileReader {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     fileContent.append(line);
+                    fileContent.append(System.lineSeparator());
                 }
             }
 

@@ -184,6 +184,8 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
     }
 
     private void evade() {
+        String hideNavigationPlugin = resourceFileReader.getFileContent("navigationPlugin.js");
+        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", hideNavigationPlugin));
         String userAgentPatch = chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "");
         chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of("userAgent", userAgentPatch));
 
@@ -197,6 +199,82 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
             String navigatorPermissionPatch = resourceFileReader.getFileContent("navigatorPermission.js");
             chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", navigatorPermissionPatch));
         }
+
+        String bGl = resourceFileReader.getFileContent("webGL.js");
+
+        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", bGl));
+        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", "if (window.outerWidth && window.outerHeight) return\n" +
+                "    const windowFrame = 85\n" +
+                "    window.outerWidth = window.innerWidth\n" +
+                "    window.outerHeight = window.innerHeight + windowFrame"));
+
+        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", "try {\n" +
+                "      /**\n" +
+                "       * Input might look funky, we need to normalize it so e.g. whitespace isn't an issue for our spoofing.\n" +
+                "       *\n" +
+                "       * @example\n" +
+                "       * video/webm; codecs=\"vp8, vorbis\"\n" +
+                "       * video/mp4; codecs=\"avc1.42E01E\"\n" +
+                "       * audio/x-m4a;\n" +
+                "       * audio/ogg; codecs=\"vorbis\"\n" +
+                "       * @param {String} arg\n" +
+                "       */\n" +
+                "      const parseInput = arg => {\n" +
+                "        const [mime, codecStr] = arg.trim().split(';')\n" +
+                "        let codecs = []\n" +
+                "        if (codecStr && codecStr.includes('codecs=\"')) {\n" +
+                "          codecs = codecStr\n" +
+                "            .trim()\n" +
+                "            .replace('codecs=\"', '')\n" +
+                "            .replace('\"', '')\n" +
+                "            .trim()\n" +
+                "            .split(',')\n" +
+                "            .filter(x => !!x)\n" +
+                "            .map(x => x.trim())\n" +
+                "        }\n" +
+                "        return { mime, codecStr, codecs }\n" +
+                "      }\n" +
+                "\n" +
+                "      /* global HTMLMediaElement */\n" +
+                "      const canPlayType = {\n" +
+                "        // Make toString() native\n" +
+                "        get (target, key) {\n" +
+                "          // Mitigate Chromium bug (#130)\n" +
+                "          if (typeof target[key] === 'function') {\n" +
+                "            return target[key].bind(target)\n" +
+                "          }\n" +
+                "          return Reflect.get(target, key)\n" +
+                "        },\n" +
+                "        // Intercept certain requests\n" +
+                "        apply: function (target, ctx, args) {\n" +
+                "          if (!args || !args.length) {\n" +
+                "            return target.apply(ctx, args)\n" +
+                "          }\n" +
+                "          const { mime, codecs } = parseInput(args[0])\n" +
+                "          // This specific mp4 codec is missing in Chromium\n" +
+                "          if (mime === 'video/mp4') {\n" +
+                "            if (codecs.includes('avc1.42E01E')) {\n" +
+                "              return 'probably'\n" +
+                "            }\n" +
+                "          }\n" +
+                "          // This mimetype is only supported if no codecs are specified\n" +
+                "          if (mime === 'audio/x-m4a' && !codecs.length) {\n" +
+                "            return 'maybe'\n" +
+                "          }\n" +
+                "\n" +
+                "          // This mimetype is only supported if no codecs are specified\n" +
+                "          if (mime === 'audio/aac' && !codecs.length) {\n" +
+                "            return 'probably'\n" +
+                "          }\n" +
+                "          // Everything else as usual\n" +
+                "          return target.apply(ctx, args)\n" +
+                "        }\n" +
+                "      }\n" +
+                "      HTMLMediaElement.prototype.canPlayType = new Proxy(\n" +
+                "        HTMLMediaElement.prototype.canPlayType,\n" +
+                "        canPlayType\n" +
+                "      )\n" +
+                "    } catch (err) {}"));
     }
 
     @Override

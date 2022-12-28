@@ -28,7 +28,7 @@ public class TestNowSecure {
         AwesomeDriver awesomeDriver = new AwesomeDriver(false);
         try {
             awesomeDriver.get("https://bot.sannysoft.com/");
-            Thread.sleep(10000);
+            Thread.sleep(100);
             File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
             FileUtils.copyFile(screenshotAs, new File("./outSanny.png"));
@@ -59,7 +59,7 @@ public class TestNowSecure {
         try {
             awesomeDriver.get("https://bot.sannysoft.com/");
 
-            Thread.sleep(10000);
+            Thread.sleep(2000);
             File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
             FileUtils.copyFile(screenshotAs, new File("./outSannyHeadless.png"));
