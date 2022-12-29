@@ -14,12 +14,12 @@ public class TestNowSecure {
         try {
             awesomeDriver.get("https://nowsecure.nl");
 
-            Thread.sleep(10000);
+            Thread.sleep(20000);
             File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
             FileUtils.copyFile(screenshotAs, new File("./out.png"));
         } finally {
-            awesomeDriver.quit();
+//            awesomeDriver.quit();
         }
     }
 
@@ -33,7 +33,7 @@ public class TestNowSecure {
 
             FileUtils.copyFile(screenshotAs, new File("./outSanny.png"));
         } finally {
-            awesomeDriver.quit();
+//            awesomeDriver.quit();
         }
     }
 

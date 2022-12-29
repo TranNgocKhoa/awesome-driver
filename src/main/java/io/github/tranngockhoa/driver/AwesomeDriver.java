@@ -187,6 +187,8 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
         String hideNavigationPlugin = resourceFileReader.getFileContent("navigationPlugin.js");
         chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", hideNavigationPlugin));
 
+//        String userAgentPatch = chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "");
+//        chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of("userAgent", new UserAgent().getRandomAgent()));
         String userAgentPatch = chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "");
         chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of("userAgent", userAgentPatch));
 
