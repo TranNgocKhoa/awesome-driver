@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'io.github.tranngockhoa'
-version '0.1.0'
+version '0.1.1'
 
 repositories {
     mavenCentral()
@@ -44,7 +44,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'io.github.tranngockhoa'
-            version '0.1.0'
+            version '0.1.1'
             artifactId = 'driver'
             from components.java
             versionMapping {

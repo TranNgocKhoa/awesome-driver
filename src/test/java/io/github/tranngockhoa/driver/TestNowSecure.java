@@ -19,7 +19,7 @@ public class TestNowSecure {
 
             FileUtils.copyFile(screenshotAs, new File("./out.png"));
         } finally {
-//            awesomeDriver.quit();
+            awesomeDriver.quit();
         }
     }
 
@@ -33,7 +33,35 @@ public class TestNowSecure {
 
             FileUtils.copyFile(screenshotAs, new File("./outSanny.png"));
         } finally {
-//            awesomeDriver.quit();
+            awesomeDriver.quit();
+        }
+    }
+
+    @Test
+    void creepJs() throws IOException, InterruptedException {
+        AwesomeDriver awesomeDriver = new AwesomeDriver(false);
+        try {
+            awesomeDriver.get("https://abrahamjuliot.github.io/creepjs/");
+            Thread.sleep(60000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./outCreppJs.png"));
+        } finally {
+            awesomeDriver.quit();
+        }
+    }
+
+    @Test
+    void creepJsHeadless() throws IOException, InterruptedException {
+        AwesomeDriver awesomeDriver = new AwesomeDriver(true);
+        try {
+            awesomeDriver.get("https://abrahamjuliot.github.io/creepjs/");
+            Thread.sleep(60000);
+            File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
+
+            FileUtils.copyFile(screenshotAs, new File("./outCreppJsHeadless.png"));
+        } finally {
+            awesomeDriver.quit();
         }
     }
 

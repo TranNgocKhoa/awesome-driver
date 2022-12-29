@@ -2,6 +2,8 @@ package io.github.tranngockhoa.driver;
 
 import io.github.tranngockhoa.driver.enums.ArchitectureType;
 import io.github.tranngockhoa.driver.enums.PlatformType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -12,17 +14,17 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Random;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Patcher {
-    private static final Logger LOGGER = Logger.getLogger(Patcher.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(Patcher.class);
     private static final String REPOSITORY_HOST = "https://chromedriver.storage.googleapis.com";
     private static final String DRIVER_ZIP_PATTERN = "chromedriver_%s.zip";
     private static final String EXECUTE_FILE_PATTERN = "chromedriver%s";
     private static final String CACHE_PATH = "/.cache/awesome_driver";
+    private static final String CACHE_WIN_PATH = ".\\awesome_driver";
     private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
     private final String mainVersion;
@@ -36,7 +38,7 @@ public class Patcher {
         this.fullVersion = fetchReleaseNumber();
         this.driverFolder = this.getDriverFolderPath();
         this.driverExecutablePath = this.getDriverExecutablePath();
-        this.driverZipPath = driverFolder + "/" + String.format(DRIVER_ZIP_PATTERN, this.getRemoteFileName());
+        this.driverZipPath = driverFolder + File.separator + String.format(DRIVER_ZIP_PATTERN, this.getRemoteFileName());
     }
 
     public Patcher() {
@@ -216,7 +218,7 @@ public class Patcher {
     private void fetchDriver() {
         new File(this.driverFolder).mkdirs();
         try {
-            LOGGER.info(() -> String.format("Downloading driver version %s...", fullVersion));
+            LOGGER.info(String.format("Downloading driver version %s...", fullVersion));
 
             URL url = new URL(this.getDownloadDriverUrl());
             ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
@@ -225,7 +227,7 @@ public class Patcher {
                 fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             }
 
-            LOGGER.info(() -> String.format("Downloaded driver version %s!", fullVersion));
+            LOGGER.info(String.format("Downloaded driver version %s!", fullVersion));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -238,7 +240,7 @@ public class Patcher {
             while (nextEntry != null) {
                 String fileName = nextEntry.getName();
                 File newFile = new File(this.driverFolder + File.separator + fileName);
-                LOGGER.info(() -> "Unzipping to " + newFile.getAbsolutePath());
+                LOGGER.info("Unzipping to " + newFile.getAbsolutePath());
                 new File(newFile.getParent()).mkdirs();
                 try (FileOutputStream fos = new FileOutputStream(newFile)) {
                     int len;
@@ -272,13 +274,21 @@ public class Patcher {
     }
 
     private String getDriverExecutablePath() {
-        String driverFolder = System.getProperty("user.home") + CACHE_PATH + "/" + fullVersion;
-
-        return driverFolder + "/" + getExecuteFileName();
+        String driverFolder = System.getProperty("user.home") + getCachePath() + File.separator + fullVersion;
+        return driverFolder + File.separator + getExecuteFileName();
     }
 
     private String getDriverFolderPath() {
-        return System.getProperty("user.home") + CACHE_PATH + "/" + fullVersion;
+        return System.getProperty("user.home") + getCachePath() + File.separator + fullVersion;
+    }
+
+    private String getCachePath() {
+        PlatformType platform = SystemHelper.instance().platform();
+        if (platform == PlatformType.WINDOWS) {
+            return CACHE_WIN_PATH;
+        }
+
+        return CACHE_PATH;
     }
 
     private String generateRandomCdc() {
