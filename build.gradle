@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'io.github.tranngockhoa'
-version '0.0.9'
+version '0.1.0'
 
 repositories {
     mavenCentral()
@@ -44,7 +44,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'io.github.tranngockhoa'
-            version '0.0.9'
+            version '0.1.0'
             artifactId = 'driver'
             from components.java
             versionMapping {
@@ -57,7 +57,7 @@ publishing {
             }
             pom {
                 name = 'Awesome Driver'
-                description = 'Custom Chrome Driver'
+                description = 'Custom Chrome Driver. I developed it for my personal purpose. It\'s open source so please checkout code for more details.'
                 url = 'https://github.com/TranNgocKhoa/awesome-driver.git'
                 licenses {
                     license {
