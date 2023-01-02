@@ -48,9 +48,13 @@ public class Patcher {
 
     public void setup() {
         File driverFile = Path.of(driverExecutablePath).toFile();
+        LOGGER.info("Checking driver exist....");
         if (!driverFile.exists()) {
+            LOGGER.info("Not exist, trying to create new...");
             this.fetchDriver();
             this.unzip();
+        } else {
+            LOGGER.info("Driver is existed!");
         }
         this.makeDriverExecutable();
         if (!this.isPatched()) {

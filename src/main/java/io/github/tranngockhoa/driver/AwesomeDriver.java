@@ -14,6 +14,7 @@ import org.openqa.selenium.interactions.Sequence;
 import java.util.*;
 
 public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor, Interactive {
+    private static final String CHROME_DRIVER_EXE_PROPERTY = "webdriver.chrome.driver";
     private final ResourceFileReader resourceFileReader = new ResourceFileReader();
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
@@ -43,7 +44,10 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
     }
 
     public AwesomeDriver(ChromeDriverService service, ChromeOptions chromeOptions, ProxyConfig proxyConfig, boolean isHeadless) {
-        new Patcher().setup();
+        String driverProperty = System.getProperty(CHROME_DRIVER_EXE_PROPERTY);
+        if (driverProperty == null || !driverProperty.contains("awesome")) {
+            new Patcher().setup();
+        }
         this.options = this.patchingOption(chromeOptions);
         this.options.setHeadless(isHeadless);
         if (proxyConfig != null) {
