@@ -52,3 +52,4 @@ gradle.properties
 /outCreppJsHeadless1.png
 /outCreppJsHeadless2.png
 /outCreppJsHeadless3.png
+docker-compose.yml
