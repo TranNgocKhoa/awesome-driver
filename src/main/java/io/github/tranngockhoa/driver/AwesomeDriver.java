@@ -15,9 +15,12 @@ import java.util.*;
 
 public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, JavascriptExecutor, Interactive {
     private static final String CHROME_DRIVER_EXE_PROPERTY = "webdriver.chrome.driver";
+    private static final String EVALUATE_SCRIPT_COMMAND = "Page.addScriptToEvaluateOnNewDocument";
     private final ResourceFileReader resourceFileReader = new ResourceFileReader();
     private final ChromeDriver chromeDriver;
     private final ChromeOptions options;
+    private String getCdcPattern;
+    private String hideCdc;
 
     public AwesomeDriver(ChromeOptions chromeOptions) {
         this(null, chromeOptions, null, false);
@@ -142,10 +145,15 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
     }
 
     private void executePatchCdp() {
-        Object objectToInspect = chromeDriver.executeScript("let objectToInspect = window,\n" + "                result = [];\n" + "            while(objectToInspect !== null)\n" + "            { result = result.concat(Object.getOwnPropertyNames(objectToInspect));\n" + "              objectToInspect = Object.getPrototypeOf(objectToInspect); }\n" + "            return result.filter(i => i.match(/.+_.+_(Array|Promise|Symbol)/ig))");
-
+        if (getCdcPattern == null) {
+            getCdcPattern = resourceFileReader.getFileContent("getCdcPattern.js");
+        }
+        Object objectToInspect = chromeDriver.executeScript(getCdcPattern);
         if (objectToInspect != null) {
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", "let objectToInspect = window,\n" + "                        result = [];\n" + "                    while(objectToInspect !== null) \n" + "                    { result = result.concat(Object.getOwnPropertyNames(objectToInspect));\n" + "                      objectToInspect = Object.getPrototypeOf(objectToInspect); }\n" + "                    result.forEach(p => p.match(/.+_.+_(Array|Promise|Symbol)/ig)\n" + "                                        &&delete window[p]&&console.log('removed',p))"));
+            if (hideCdc == null) {
+                hideCdc = resourceFileReader.getFileContent("hideCdc.js");
+            }
+            chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", hideCdc));
         }
     }
 
@@ -189,7 +197,7 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
 
     private void evade() {
         String hideNavigationPlugin = resourceFileReader.getFileContent("navigationPlugin.js");
-        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", hideNavigationPlugin));
+        chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", hideNavigationPlugin));
 
 //        String userAgentPatch = chromeDriver.executeScript("return navigator.userAgent").toString().replace("Headless", "");
 //        chromeDriver.executeCdpCommand("Network.setUserAgentOverride", Map.of("userAgent", new UserAgent().getRandomAgent()));
@@ -198,23 +206,23 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
 
         if (chromeDriver.executeScript("return navigator.webdriver") != null) {
             String hideWebdriverNavigatorPatch = resourceFileReader.getFileContent("hideNavigatorWebDriver.js");
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", hideWebdriverNavigatorPatch));
+            chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", hideWebdriverNavigatorPatch));
 
             String chromeRuntimePatch = resourceFileReader.getFileContent("chromeRuntime.js");
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", chromeRuntimePatch));
+            chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", chromeRuntimePatch));
 
             String navigatorPermissionPatch = resourceFileReader.getFileContent("navigatorPermission.js");
-            chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", navigatorPermissionPatch));
+            chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", navigatorPermissionPatch));
         }
 
         String bGl = resourceFileReader.getFileContent("webGL.js");
-        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", bGl));
+        chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", bGl));
 
         String windowFramePatch = resourceFileReader.getFileContent("windowFrame.js");
-        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", windowFramePatch));
+        chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", windowFramePatch));
 
         String mediaCodec = resourceFileReader.getFileContent("mediaCodec.js");
-        chromeDriver.executeCdpCommand("Page.addScriptToEvaluateOnNewDocument", Map.of("source", mediaCodec));
+        chromeDriver.executeCdpCommand(EVALUATE_SCRIPT_COMMAND, Map.of("source", mediaCodec));
     }
 
     @Override
