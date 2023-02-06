@@ -31,7 +31,7 @@ public class TestNowSecure {
         AwesomeDriver awesomeDriver = new AwesomeDriver(true);
         try {
             awesomeDriver.get("https://nowsecure.nl");
-            Thread.sleep(10000);
+            Thread.sleep(15000);
             File screenshotAs = awesomeDriver.getScreenshotAs(OutputType.FILE);
 
             System.out.println(awesomeDriver.getPageSource());

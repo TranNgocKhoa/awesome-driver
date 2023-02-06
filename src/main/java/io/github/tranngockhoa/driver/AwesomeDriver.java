@@ -21,6 +21,7 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
     private final ChromeOptions options;
     private String getCdcPattern;
     private String hideCdc;
+    private boolean isHeadless;
 
     public AwesomeDriver(ChromeOptions chromeOptions) {
         this(null, chromeOptions, null, false);
@@ -53,6 +54,10 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
         }
         this.options = this.patchingOption(chromeOptions);
         this.options.setHeadless(isHeadless);
+        this.isHeadless = isHeadless;
+        if (isHeadless) {
+            options.addArguments(String.format("--window-size=%s,%s", 1440, 1880));
+        }
         if (proxyConfig != null) {
             this.setProxy(proxyConfig);
         }
@@ -79,6 +84,9 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
 
     @Override
     public void get(String url) {
+        if (isHeadless) {
+            this.evade();
+        }
         this.executePatchCdp();
 
         chromeDriver.get(url);

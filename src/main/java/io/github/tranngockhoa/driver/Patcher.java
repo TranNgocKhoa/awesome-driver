@@ -166,7 +166,7 @@ public class Patcher {
         ArchitectureType architecture = SystemHelper.instance().architecture();
         if (platform == PlatformType.MAC) {
             if (architecture == ArchitectureType.ARM64) {
-                return String.format(DRIVER_ZIP_PATTERN, "mac64_m1");
+                return String.format(DRIVER_ZIP_PATTERN, "mac_arm64");
             }
             return String.format(DRIVER_ZIP_PATTERN, "mac64");
         }
