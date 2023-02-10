@@ -34,8 +34,8 @@ public class Patcher {
     private final String driverZipPath;
 
     public Patcher(String mainVersion) {
-        this.mainVersion = mainVersion;
-        this.fullVersion = fetchReleaseNumber();
+        this.mainVersion = "109";
+        this.fullVersion = "109.0.5414.74";
         this.driverFolder = this.getDriverFolderPath();
         this.driverExecutablePath = this.getDriverExecutablePath();
         this.driverZipPath = driverFolder + File.separator + String.format(DRIVER_ZIP_PATTERN, this.getRemoteFileName());
