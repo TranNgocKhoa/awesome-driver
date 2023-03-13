@@ -169,6 +169,7 @@ public class AwesomeDriver implements WebDriver, HasDevTools, TakesScreenshot, J
         if (options == null) {
             options = new ChromeOptions();
         }
+        options.addArguments("--remote-allow-origins=*");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-blink-features=AutomationControlled");
         options.addArguments("--no-default-browser-check");

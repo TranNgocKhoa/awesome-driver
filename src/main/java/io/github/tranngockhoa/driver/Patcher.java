@@ -34,8 +34,8 @@ public class Patcher {
     private final String driverZipPath;
 
     public Patcher(String mainVersion) {
-        this.mainVersion = "109";
-        this.fullVersion = "109.0.5414.74";
+        this.mainVersion = mainVersion;
+        this.fullVersion = fetchReleaseNumber();
         this.driverFolder = this.getDriverFolderPath();
         this.driverExecutablePath = this.getDriverExecutablePath();
         this.driverZipPath = driverFolder + File.separator + String.format(DRIVER_ZIP_PATTERN, this.getRemoteFileName());
@@ -110,6 +110,7 @@ public class Patcher {
                 int targetPosition = readingString.indexOf(pattern);
 
                 while (targetPosition != -1) {
+                    LOGGER.info("cdc_ found. Patching...");
                     driverFile.seek(currentPosition + targetPosition);
                     driverFile.write(randomCdc.getBytes(StandardCharsets.US_ASCII));
 
@@ -165,9 +166,9 @@ public class Patcher {
 
         ArchitectureType architecture = SystemHelper.instance().architecture();
         if (platform == PlatformType.MAC) {
-            if (architecture == ArchitectureType.ARM64) {
-                return String.format(DRIVER_ZIP_PATTERN, "mac_arm64");
-            }
+//            if (architecture == ArchitectureType.ARM64) {
+//                return String.format(DRIVER_ZIP_PATTERN, "mac_arm64");
+//            }
             return String.format(DRIVER_ZIP_PATTERN, "mac64");
         }
 
@@ -270,6 +271,7 @@ public class Patcher {
                 }
                 line = reader.readLine();
             }
+            LOGGER.info("No cdc_ found. Maybe patched!");
 
             return true;
         } catch (IOException e) {
